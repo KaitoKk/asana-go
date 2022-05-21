@@ -1,4 +1,4 @@
-package asana
+package asanago
 
 type Workspace struct {
 	Gid string

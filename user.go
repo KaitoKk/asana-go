@@ -1,4 +1,4 @@
-package asana
+package asanago
 
 type User struct {
 	Gid string
