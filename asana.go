@@ -60,7 +60,8 @@ func (c Client) GetUser(userGid string) (User, error) {
 	var user UserResponse
 	if err := json.Unmarshal(body, &user); err != nil {
 		fmt.Println("error:", err)
-		return nil, err
+		var empty User
+		return empty, err
 	}
 
 	return user.Data, nil
@@ -87,4 +88,50 @@ func (c Client) GetUsers() ([]User, error) {
 	}
 
 	return users.Data, nil
+}
+
+
+
+// Woekspace API
+func (c Client) GetWorkspace(workspaceGid string) (Workspace, error) {
+	workspacePath := "workspaces/" + workspaceGid
+
+	req, _ := c.buildRequest("GET", workspacePath, nil)
+
+	res, _ := c.HttpClient.Do(req)
+
+	defer res.Body.Close()
+
+	body, _ := io.ReadAll(res.Body)
+	var workspace WorkspaceResponse
+	err := json.Unmarshal(body, &workspace)
+	if err != nil {
+		fmt.Println("error:", err)
+		var empty Workspace
+		return empty, err
+	}
+
+	return workspace.Data, nil
+}
+
+// Woekspaces API
+func (c Client) GetWorkspaces() ([]Workspace, error) {
+	workspacesPath := "workspaces"
+
+	req, _ := c.buildRequest("GET", workspacesPath, nil)
+
+	res, _ := c.HttpClient.Do(req)
+
+	defer res.Body.Close()
+
+	body, _ := io.ReadAll(res.Body)
+	fmt.Println(string(body))
+	var workspaces WorkspacesResponse
+	err := json.Unmarshal(body, &workspaces)
+	if err != nil {
+		fmt.Println("error:", err)
+		return nil, err
+	}
+
+	return workspaces.Data, nil
 }
