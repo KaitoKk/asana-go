@@ -103,6 +103,7 @@ func (c Client) GetWorkspace(workspaceGid string) (Workspace, error) {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
+
 	var workspace WorkspaceResponse
 	err := json.Unmarshal(body, &workspace)
 	if err != nil {
@@ -125,7 +126,7 @@ func (c Client) GetWorkspaces() ([]Workspace, error) {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
-	fmt.Println(string(body))
+
 	var workspaces WorkspacesResponse
 	err := json.Unmarshal(body, &workspaces)
 	if err != nil {
