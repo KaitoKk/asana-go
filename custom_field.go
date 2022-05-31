@@ -23,3 +23,12 @@ type CustomField struct {
 	TextValue               string `json:"text_value"`
 	Type                    string
 }
+
+type CustomFieldSetting struct {
+	Gid          string
+	ResourceType string      `json:"resource_type"`
+	CustomField  CustomField `json:"custom_field"` // defined in task.go
+	IsImportant  bool        `json:"is_important"`
+	Parent       ProjectCompact
+	Project      ProjectCompact
+}
