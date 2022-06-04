@@ -1,5 +1,11 @@
 package asanago
 
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+)
+
 type Task struct {
 	Gid             string
 	ResourceType    string `json:"resource_type"`
@@ -39,4 +45,32 @@ type TaskCompact struct {
 	Gid          string
 	ResourceType string `json:"resource_type"`
 	Name         string
+}
+
+type TasksResponse struct {
+	Data []Task
+}
+
+func (c Client) GetTasks() ([]Task, error) {
+	taskPath := "tasks"
+	req, _ := c.buildRequest("GET", taskPath, nil)
+
+	res, _ := c.HttpClient.Do(req)
+
+	defer res.Body.Close()
+
+	body, _ := io.ReadAll(res.Body)
+
+	if res.StatusCode != 200 {
+		fmt.Println("StatusCode: ", res.StatusCode)
+		c.printError(body)
+	}
+
+	var tasks TasksResponse
+	if err := json.Unmarshal(body, &tasks); err != nil {
+		fmt.Println("error:", err)
+		return nil, err
+	}
+
+	return tasks.Data, nil
 }
