@@ -53,6 +53,10 @@ type TasksResponse struct {
 	Data []TaskCompact
 }
 
+type TaskResponse struct {
+	Data Task
+}
+
 type GetTasksConfig struct {
 	Assignee       string
 	Project        string
@@ -84,6 +88,7 @@ func (op GetTasksConfig) BuildQueryParams() string {
 
 func (c Client) GetTasks(config GetTasksConfig) ([]TaskCompact, error) {
 	taskPath := "tasks" + config.BuildQueryParams()
+	fmt.Println(taskPath)
 	req, _ := c.buildRequest("GET", taskPath, nil)
 
 	res, _ := c.HttpClient.Do(req)
@@ -91,7 +96,6 @@ func (c Client) GetTasks(config GetTasksConfig) ([]TaskCompact, error) {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
-	fmt.Println(string(body))
 
 	if res.StatusCode != 200 {
 		fmt.Println("StatusCode: ", res.StatusCode)
@@ -105,4 +109,30 @@ func (c Client) GetTasks(config GetTasksConfig) ([]TaskCompact, error) {
 	}
 
 	return tasks.Data, nil
+}
+
+func (c Client) GetTask(taskGid string) (Task, error) {
+	taskPath := "tasks/" + taskGid
+
+	req, _ := c.buildRequest("GET", taskPath, nil)
+
+	res, _ := c.HttpClient.Do(req)
+
+	defer res.Body.Close()
+
+	body, _ := io.ReadAll(res.Body)
+
+	if res.StatusCode != 200 {
+		fmt.Println("StatusCode: ", res.StatusCode)
+		c.printError(body)
+	}
+
+	var task TaskResponse
+	if err := json.Unmarshal(body, &task); err != nil {
+		fmt.Println("error:", err)
+
+		return Task{}, err
+	}
+
+	return task.Data, nil
 }
