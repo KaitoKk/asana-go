@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"reflect"
+	"strings"
 )
 
 type Task struct {
@@ -48,11 +50,41 @@ type TaskCompact struct {
 }
 
 type TasksResponse struct {
-	Data []Task
+	Data []TaskCompact
 }
 
-func (c Client) GetTasks() ([]Task, error) {
-	taskPath := "tasks"
+type GetTasksConfig struct {
+	Assignee       string
+	Project        string
+	Section        string
+	Workspace      string
+	CompletedSince string
+	ModifiedSince  string
+}
+
+func (op GetTasksConfig) BuildQueryParams() string {
+	prefix := "?"
+	rt := reflect.TypeOf(op)
+	rv := reflect.ValueOf(op)
+
+	var queries []string
+
+	for i := 0; i < rt.NumField(); i++ {
+		if rv.Field(i).String() == "" {
+			continue
+		}
+		queries = append(queries, strings.ToLower(rt.Field(i).Name)+"="+rv.Field(i).String())
+	}
+
+	if len(queries) == 0 {
+		return ""
+	}
+	return prefix + strings.Join(queries, "&")
+}
+
+func (c Client) GetTasks(config GetTasksConfig) ([]TaskCompact, error) {
+	taskPath := "tasks" + config.BuildQueryParams()
+	fmt.Println("path", taskPath)
 	req, _ := c.buildRequest("GET", taskPath, nil)
 
 	res, _ := c.HttpClient.Do(req)
@@ -60,6 +92,7 @@ func (c Client) GetTasks() ([]Task, error) {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
+	fmt.Println(string(body))
 
 	if res.StatusCode != 200 {
 		fmt.Println("StatusCode: ", res.StatusCode)
