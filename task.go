@@ -84,7 +84,6 @@ func (op GetTasksConfig) BuildQueryParams() string {
 
 func (c Client) GetTasks(config GetTasksConfig) ([]TaskCompact, error) {
 	taskPath := "tasks" + config.BuildQueryParams()
-	fmt.Println("path", taskPath)
 	req, _ := c.buildRequest("GET", taskPath, nil)
 
 	res, _ := c.HttpClient.Do(req)
