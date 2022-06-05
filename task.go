@@ -1,6 +1,7 @@
 package asanago
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -135,4 +136,58 @@ func (c Client) GetTask(taskGid string) (Task, error) {
 	}
 
 	return task.Data, nil
+}
+
+type TaskRequest struct {
+	ApprovalStatus  string `json:"approval_status,omitempty"`
+	Assignee        string `json:"assignee,omitempty"`
+	AssigneeSection string `json:"assignee_section,omitempty"`
+	Completed       bool   `json:"completed,omitempty"`
+	CompletedBy     *User  `json:"completed_by,omitempty"`
+	// CustomFields どうするか考える
+	DueAt           string    `json:"due_at,omitempty"`
+	DueOn           string    `json:"due_on,omitempty"`
+	External        *External `json:"external,omitempty"`
+	Followers       []string  `json:"followers,omitempty"`
+	HtmlNotes       string    `json:"html_notes,omitempty"`
+	Liked           bool      `json:"liked,omitempty"`
+	Name            string    `json:"name,omitempty"`
+	Notes           string    `json:"notes,omitempty"`
+	Parent          string    `json:"parent,omitempty"`
+	Projects        []string  `json:"projects,omitempty"`
+	ResourceSubtype string    `json:"resource_subtype,omitempty"`
+	StartAt         string    `json:"start_at,omitempty"`
+	StartOn         string    `json:"start_on,omitempty"`
+	Tags            []string  `json:"tags,omitempty"`
+	Workspace       string    `json:"workspace,omitempty"`
+}
+
+type TaskRequestBody struct {
+	Data TaskRequest `json:"data"`
+}
+
+func (c Client) CreateTask(task TaskRequest) (Task, error) {
+	taskPath := "tasks"
+	reqBody, _ := json.Marshal(TaskRequestBody{Data: task})
+
+	req, _ := c.buildRequest("POST", taskPath, bytes.NewBuffer(reqBody))
+
+	res, _ := c.HttpClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	if res.StatusCode != 201 {
+		fmt.Println("StatusCode: ", res.StatusCode)
+		c.printError(body)
+	}
+
+	var newTask TaskResponse
+	if err := json.Unmarshal(body, &newTask); err != nil {
+		fmt.Println("error:", err)
+
+		return Task{}, err
+	}
+
+	return newTask.Data, nil
 }
