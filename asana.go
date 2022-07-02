@@ -1,16 +1,16 @@
 package asanago
 
 import (
-	"io"
-	"fmt"
-	"errors"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 )
 
 type Client struct {
-	baseUrl string
-	apiKey string
+	baseUrl    string
+	apiKey     string
 	HttpClient *http.Client
 }
 
@@ -33,16 +33,22 @@ func BuildClient(apiKey string) (*Client, error) {
 }
 
 func (c Client) buildRequest(method string, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, c.baseUrl + path, body)
+	req, err := http.NewRequest(method, c.baseUrl+path, body)
 
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer " + c.apiKey)
+	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 
 	return req, nil
+}
+
+func (c Client) printError(body []byte) {
+	var e Errors
+	json.Unmarshal(body, &e)
+	e.PrintErrors()
 }
 
 // User API
@@ -67,7 +73,6 @@ func (c Client) GetUser(userGid string) (User, error) {
 	return user.Data, nil
 }
 
-
 // Users API
 func (c Client) GetUsers() ([]User, error) {
 	usersPath := "users"
@@ -89,8 +94,6 @@ func (c Client) GetUsers() ([]User, error) {
 
 	return users.Data, nil
 }
-
-
 
 // Woekspace API
 func (c Client) GetWorkspace(workspaceGid string) (Workspace, error) {
